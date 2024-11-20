@@ -74,7 +74,12 @@
             const pc = new RTCPeerConnection({ iceServers });
             console.log("stream.getTracks()")
             console.log(stream.getTracks())
-            stream.getTracks().forEach(track => pc.addTrack(track, stream));
+            // stream.getTracks().forEach(track => pc.addTrack(track, stream));
+            stream.getTracks().forEach(
+                track => pc.addTransceiver(track, {
+                    direction: "sendonly",
+                })
+            );
 
             // Create and send SDP offer to WHIP endpoint
             const offer = await pc.createOffer();

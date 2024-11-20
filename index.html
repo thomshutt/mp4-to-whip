@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WHIP Streaming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stream MP4 to WHIP Ingest</h1>
+    <form id="streamForm">
+        <label for="mp4Url">MP4 File URL:</label>
+        <input type="url" id="mp4Url" placeholder="Enter the MP4 file URL" required>
+        <label for="whipUrl">WHIP Endpoint URL:</label>
+        <input type="url" id="whipUrl" placeholder="Enter the WHIP endpoint URL" required>
+        <button type="submit">Start Streaming</button>
+    </form>
+    <div id="status"></div>
+    <script>
+        async function streamToWHIP(mp4Url, whipUrl) {
+            const status = document.getElementById('status');
+            try {
+                status.textContent = 'Initializing stream...';
+
+                // Create a video element to fetch and play the MP4 file
+                const video = document.createElement('video');
+                video.src = mp4Url;
+                video.autoplay = true;
+                video.muted = true; // Mute to prevent autoplay issues
+                await video.play();
+
+                // Capture MediaStream from the video element
+                const stream = video.captureStream();
+
+                // Initialize WebRTC connection
+                const pc = new RTCPeerConnection();
+                stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+                // Create and send SDP offer to WHIP endpoint
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+
+                const response = await fetch(whipUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/sdp' },
+                    body: offer.sdp,
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to connect to WHIP endpoint');
+                }
+
+                // Set remote SDP answer
+                const answerSDP = await response.text();
+                await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: answerSDP }));
+
+                status.textContent = 'Streaming started successfully!';
+                console.log('Streaming to WHIP endpoint started');
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+                console.error('Streaming error:', error);
+            }
+        }
+
+        // Attach event listener to the form
+        document.getElementById('streamForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const mp4Url = document.getElementById('mp4Url').value;
+            const whipUrl = document.getElementById('whipUrl').value;
+            await streamToWHIP(mp4Url, whipUrl);
+        });
+    </script>
+</body>
+</html>
+

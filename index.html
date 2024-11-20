@@ -50,6 +50,7 @@
             video.autoplay = true;
             video.crossOrigin = "anonymous";
             video.muted = true; // Mute to prevent autoplay issues
+            video.loop = true
             await video.play();
 
             // Capture MediaStream from the video element
@@ -66,15 +67,9 @@
                     credential: "livepeer",
                 },
             ];
-            console.log("iceServers")
-            console.log(iceServers)
-
 
             // Initialize WebRTC connection
             const pc = new RTCPeerConnection({ iceServers });
-            console.log("stream.getTracks()")
-            console.log(stream.getTracks())
-            // stream.getTracks().forEach(track => pc.addTrack(track, stream));
             stream.getTracks().forEach(
                 track => pc.addTransceiver(track, {
                     direction: "sendonly",
@@ -93,18 +88,12 @@
                 pc.onicegatheringstatechange = (_ev) => {
                     if (pc.iceGatheringState === "complete") {
                         resolve(pc.localDescription);
-                    } else {
-                        console.log("Not Complete")
-                        console.log(pc.localDescription)
                     }
                 };
             });
             if (!ofr) {
                 throw Error("failed to gather ICE candidates for offer");
             }
-
-            console.log("ofr.sdp")
-            console.log(ofr.sdp)
 
             const response = await fetch(whipUrl, {
                 method: 'POST',
@@ -114,8 +103,6 @@
             });
 
             if (!response.ok) {
-                console.log("response.text()")
-                console.log(response.text())
                 throw new Error('Failed to connect to WHIP endpoint');
             }
 

@@ -44,6 +44,7 @@
                 const video = document.createElement('video');
                 video.src = mp4Url;
                 video.autoplay = true;
+		video.crossOrigin = "anonymous";
                 video.muted = true; // Mute to prevent autoplay issues
                 await video.play();
 

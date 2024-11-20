@@ -111,10 +111,8 @@
             await pc.setRemoteDescription(new RTCSessionDescription({type: 'answer', sdp: answerSDP}));
 
             status.textContent = 'Streaming started successfully!';
-            console.log('Streaming to WHIP endpoint started');
         } catch (error) {
             status.textContent = `Error: ${error.message}`;
-            console.error('Streaming error:', error);
         }
     }
 

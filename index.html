@@ -75,11 +75,11 @@ const iceServers = [
 const ofr = await new Promise((resolve) => {
   /** Wait at most five seconds for ICE gathering. */
   setTimeout(() => {
-    resolve(peerConnection.localDescription);
+    resolve(pc.localDescription);
   }, 5000);
-  peerConnection.onicegatheringstatechange = (_ev) => {
-    if (peerConnection.iceGatheringState === "complete") {
-      resolve(peerConnection.localDescription);
+  pc.onicegatheringstatechange = (_ev) => {
+    if (pc.iceGatheringState === "complete") {
+      resolve(pc.localDescription);
     }
   };
 });

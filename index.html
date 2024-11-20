@@ -51,8 +51,21 @@
                 // Capture MediaStream from the video element
                 const stream = video.captureStream();
 
+const host = new URL(whipUrl).host;
+const iceServers = [
+  {
+    urls: `stun:${host}`,
+  },
+  {
+    urls: `turn:${host}`,
+    username: "livepeer",
+    credential: "livepeer",
+  },
+];
+
+
                 // Initialize WebRTC connection
-                const pc = new RTCPeerConnection();
+                const pc = new RTCPeerConnection(iceServers);
                 stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
                 // Create and send SDP offer to WHIP endpoint

@@ -72,8 +72,25 @@ const iceServers = [
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
 
+const ofr = await new Promise((resolve) => {
+  /** Wait at most five seconds for ICE gathering. */
+  setTimeout(() => {
+    resolve(peerConnection.localDescription);
+  }, 5000);
+  peerConnection.onicegatheringstatechange = (_ev) => {
+    if (peerConnection.iceGatheringState === "complete") {
+      resolve(peerConnection.localDescription);
+    }
+  };
+});
+if (!ofr) {
+  throw Error("failed to gather ICE candidates for offer");
+}
+
+
                 const response = await fetch(whipUrl, {
                     method: 'POST',
+			mode: "cors",
                     headers: { 'Content-Type': 'application/sdp' },
                     body: offer.sdp,
                 });
